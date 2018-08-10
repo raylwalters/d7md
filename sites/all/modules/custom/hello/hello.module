@@ -12,6 +12,9 @@ function hello_block_info() {
   $blocks['hello_user'] = array(
     'info' => t('Hello User Block'),
   );
+  $blocks['user_info'] = array(
+    'info' => t('User info block'),
+  );
   return $blocks;
 }
 
@@ -40,8 +43,23 @@ function hello_block_view($delta = '') {
       else {
         $greeting = 'Good evening @name!';
       }
-
       $block['content'] = t($greeting, array('@name' => $GLOBALS['user']->name));
+      break;
+    case 'user_info':
+      if (arg(0) == 'user' && is_numeric(arg(1))) {
+        $account = user_load(arg(1));
+        if (!empty($account)) {
+          $block['subject'] = t('User Info');
+          $output = '';
+          $output .= '<div><label>' . t('Name') . '</label>' . $account->name . '</div>';
+          $output .= '<div><label>' . t('Email') . '</label>' . $account->mail . '</div>';
+          $output .= '<div><label>' . t('Created') . '</label>' . format_date($account->created) . '</div>';
+          $access = ($account->access == 0) ? t('Never') : format_date($account->access);
+          $output .= '<div><label>' . t('Last Accessed') . '</label>' . $access . '</div>';
+
+          $block['content'] = $output;
+        }
+      }
       break;
   }
 
