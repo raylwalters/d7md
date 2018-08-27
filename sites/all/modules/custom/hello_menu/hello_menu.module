@@ -18,8 +18,16 @@ function hello_menu_menu() {
     'title' => 'Hello Variables',
     'page callback' => 'hello_menu_list_variables',
     'access arguments' => array('access content'),
-    'menu_name' => 'main-menu',
+    'menu_name' => 'navigation',
     'weight' => 2,
+  );
+
+  $items['variables/site_name'] = array(
+    'title' => 'Hello Variables: Site Name',
+    'page callback' => 'hello_menu_show_variables',
+    'access arguments' => array('access content'),
+    'menu_name' => 'navigation',
+    'weight' => 3,
   );
 
   return $items;
@@ -39,4 +47,9 @@ function hello_menu_list_variables() {
 
 function hello_menu_simple_hello() {
   return t('Hello World');
+}
+
+function hello_menu_show_variables() {
+  $value = variable_get('site_name', t('No value for this variable.'));
+  return $value;
 }
