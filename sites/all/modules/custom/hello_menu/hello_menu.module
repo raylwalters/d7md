@@ -22,9 +22,11 @@ function hello_menu_menu() {
     'weight' => 2,
   );
 
-  $items['variables/site_name'] = array(
-    'title' => 'Hello Variables: Site Name',
-    'page callback' => 'hello_menu_show_variables',
+  $items['variables/%'] = array(
+    'title callback' => 'hello_menu_show_variable_title',
+    'title arguments' => array(1),
+    'page callback' => 'hello_menu_show_variable',
+    'page arguments' => array(1),
     'access arguments' => array('access content'),
     'menu_name' => 'navigation',
     'weight' => 3,
@@ -38,7 +40,7 @@ function hello_menu_list_variables() {
   $names = array_keys($variables);
   $output = '<ul>';
   foreach ($names as $name) {
-    $output .= '<li>' . $name . '</li>';
+    $output .= '<li>' . l($name, 'variables/' . $name) . '</li>';
   }
   $output .= '</ul>';
 
@@ -49,7 +51,11 @@ function hello_menu_simple_hello() {
   return t('Hello World');
 }
 
-function hello_menu_show_variables() {
-  $value = variable_get('site_name', t('No value for this variable.'));
+function hello_menu_show_variable_title($variable_name) {
+  return t('Show Variable: @name', array('@name' => $variable_name));
+}
+
+function hello_menu_show_variable($variable_name) {
+  $value = variable_get($variable_name, t('No value for this variable.'));
   return $value;
 }
