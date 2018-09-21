@@ -69,7 +69,42 @@ function hamster_menu() {
     'access arguments' => 'edit hamsters',
   );
 
+  $items['hamster-write/insert'] = array(
+    'title' => 'DB Insert',
+    'page callback' => 'hamster_write_insert',
+    'access arguments' => array('edit hamsters'),
+  );
+
+  $items['hamster-write/update'] = array(
+    'title' => 'DB Update',
+    'page callback' => 'hamster_write_update',
+    'access arguments' => array('edit hamsters'),
+  );
+
   return $items;
+}
+
+function hamster_write_update() {
+  $hamster = array(
+    'id' => 1,
+    'habitat_id' => 1,
+  );
+  drupal_write_record('hamster', $hamster, array('id'));
+  return t('Updated');
+}
+
+function hamster_write_insert() {
+  $hamster = array(
+    'name' => 'Test',
+    'gender' => 'male',
+    'weight' => 150,
+    'birthdate' => REQUEST_TIME,
+    'image' => '',
+    'habitat_id' => 3,
+  );
+
+  drupal_write_record('hamster', $hamster);
+  return t('Done');
 }
 
 /**
@@ -170,8 +205,8 @@ function hamster_list() {
   $page = pager_default_initialize($total, $items_per_page);
 
   $results = db_query_range("SELECT h.*, hh.name AS habitat_name FROM {hamster} h
-                             LEFT JOIN {hamster_habitat} hh ON h.habitat_id = hh.id
-                             ORDER BY `h`.`id` ASC", $page * $items_per_page, $items_per_page);
+                             LEFT JOIN {hamster_habitat} hh ON h.habitat_id = hh.id",
+                             $page * $items_per_page, $items_per_page);
 
   $rows = array();
   foreach ($results as $record) {
