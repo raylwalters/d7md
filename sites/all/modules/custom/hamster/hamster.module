@@ -38,6 +38,37 @@ function hamster_menu() {
     'access arguments' => 'edit hamsters',
   );
 
+  $items['hamster-oo'] =array(
+    'title' => 'Hamsters',
+    'page callback' => 'hamster_oo_list',
+    'access arguments' => array('view hamster'),
+  );
+
+  $items['hamster-oo/%'] =array(
+    'title' => 'Hamsters',
+    'page callback' => 'hamster_oo_list',
+    'page arguments' => array(1),
+    'access arguments' => array('view hamster'),
+  );
+
+  $items['hamster-oo/insert'] = array(
+    'title' => 'DB Insert',
+    'page callback' => 'hamster_oo_insert',
+    'access arguments' => array('edit hamsters'),
+  );
+
+  $items['hamster-oo/update'] = array(
+    'title' => 'DB Update',
+    'page callback' => 'hamster_oo_update',
+    'access arguments' => array('edit hamsters'),
+  );
+
+  $items['hamster-oo/delete'] = array(
+    'title' => 'DB Delete',
+    'page callback' => 'hamster_oo_delete',
+    'access arguments' => 'edit hamsters',
+  );
+
   return $items;
 }
 
@@ -138,7 +169,7 @@ function hamster_list() {
   $total = db_query("SELECT COUNT(*) FROM {hamster}")->fetchField();
   $page = pager_default_initialize($total, $items_per_page);
 
-  $results = db_query_range("SELECT h.*, hh.name AS habitat_name FROM {hamster} h 
+  $results = db_query_range("SELECT h.*, hh.name AS habitat_name FROM {hamster} h
                              LEFT JOIN {hamster_habitat} hh ON h.habitat_id = hh.id
                              ORDER BY `h`.`id` ASC", $page * $items_per_page, $items_per_page);
 
@@ -146,7 +177,7 @@ function hamster_list() {
   foreach ($results as $record) {
     $row = array(
       $record->id,
-      l($record->name, 'hamster/' .$record->id),
+      l($record->name, 'hamster/' . $record->id),
       $record->gender,
       t('@weight g', array('@weight' => $record->weight)),
       format_date($record->birthdate, 'custom', 'm-d-Y'),
@@ -175,6 +206,97 @@ function hamster_list() {
   $output .= theme('pager');
 
   return $output;
+}
+
+
+function hamster_oo_list($gender = NULL) {
+  $output = '';
+
+  $query = db_select('hamster', 'h');
+  $query->join('hamster_habitat', 'hh', 'h.habitat_id = hh.id');
+  $query->fields('h');
+  $query->addField('hh', 'name', 'habitat_name');
+  if (!empty($gender)) {
+    $query->condition('h.gender', $gender, '=');
+  }
+  $query->orderBy('h.id');
+  $query = $query->extend('PagerDefault')->limit(10);
+  $results = $query->execute();
+
+  $rows = array();
+  foreach ($results as $record) {
+    $row = array(
+      $record->id,
+      l($record->name, 'hamster/' . $record->id),
+      $record->gender,
+      t('@weight g', array('@weight' => $record->weight)),
+      format_date($record->birthdate, 'custom', 'm-d-Y'),
+      theme('image_style', array('style_name' => 'thumbnail', 'path' => file_build_uri($record->image))),
+      $record->habitat_name,
+    );
+    $rows[] = $row;
+  }
+
+  $header = array(
+    t('ID'),
+    t('Name'),
+    t('Gender'),
+    t('Weight'),
+    t('Birth Date'),
+    t('Image'),
+    t('Habitat'),
+  );
+
+  $variables = array(
+    'rows' => $rows,
+    'header' => $header,
+  );
+
+  $output .= theme('table', $variables);
+  $output .= theme('pager');
+
+  return $output;
+}
+
+/**
+ * Implements hook_delete().
+ */
+function hamster_oo_delete() {
+  db_delete('hamster')
+    ->condition('name', 'Test')
+    ->execute();
+
+  return t('Deleted');
+}
+
+/**
+ * Implements hook_update().
+ */
+function hamster_oo_update() {
+  db_update('hamster')
+    ->fields(array(
+      'habitat_id' => 1,
+    ))
+    ->condition('name', 'Test', '=')
+    ->execute();
+
+  return t('Updated');
+}
+
+function hamster_oo_insert() {
+
+  db_insert('hamster')
+    ->fields(array(
+      'name' => 'Test',
+      'gender' => 'male',
+      'weight' => 150,
+      'birthdate' => REQUEST_TIME,
+      'image' => '',
+      'habitat_id' => 3,
+    ))
+    ->execute();
+
+  return t('Done');
 }
 
 /**
