@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+ */
+function agreetopost_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'article_node_form') {
+    dpm($form);
+    $form['title']['#title'] = t('Article Title');
+    $form['title']['#size'] = 100;
+    $form['field_image']['#weight'] = -3;
+    $form['body']['#weight'] = -2;
+    $form['field_image']['#access'] = ($GLOBALS['user']->uid == 1) ? TRUE : FALSE;
+
+    $form['agreetopost'] =  array(
+      '#type' => 'checkbox',
+      '#title' => t('I agree to the terms and conditions of the site.'),
+      '#weight' => 100,
+    );
+    if (!empty($form['nid']['#value'])) {
+      $form['agreetopost']['#disabled'] = TRUE;
+      $form['agreetopost']['#default_value'] = TRUE;
+    }
+    $form['actions']['#weight'] = 101;
+
+    $form['#validate'][] = 'agreetopost_node_validate_form';
+    array_unshift($form['actions']['submit']['#submit'], 'agreetopost_node_submit_form');
+
+  }
+}
+
+function agreetopost_node_validate_form($form, &$form_state) {
+  if (isset($form_state['values']['agreetopost']) && empty($form_state['values']['agreetopost'])) {
+    form_set_error('agreetopost', t('You must agree to the terms and conditions'));
+  }
+}
+
+/**
+ * Implements hook_node_submit().
+ */
+function agreetopost_node_submit_form($form, &$form_state) {
+  if (isset($form_state['values']['agreetopost']) && !empty($form_state['values']['agreetopost'])) {
+    drupal_set_message(t('You have agreed to the terms and conditions'));
+  }
+}
